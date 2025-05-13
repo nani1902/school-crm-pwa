@@ -1,0 +1,219 @@
+.lead-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  border-left: 4px solid #ccc;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.lead-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Status-based border colors */
+.lead-card.status-new {
+  border-left-color: #0066cc;
+}
+
+.lead-card.status-contacted {
+  border-left-color: #17a2b8;
+}
+
+.lead-card.status-visit-scheduled {
+  border-left-color: #6f42c1;
+}
+
+.lead-card.status-visit-completed {
+  border-left-color: #fd7e14;
+}
+
+.lead-card.status-pending-evaluation {
+  border-left-color: #ffc107;
+}
+
+.lead-card.status-evaluated {
+  border-left-color: #20c997;
+}
+
+.lead-card.status-pending-principal-consent {
+  border-left-color: #17a2b8;
+}
+
+.lead-card.status-payment-pending {
+  border-left-color: #dc3545;
+}
+
+.lead-card.status-payment-verified {
+  border-left-color: #28a745;
+}
+
+.lead-card.status-converted {
+  border-left-color: #28a745;
+}
+
+.lead-card.status-dormant {
+  border-left-color: #6c757d;
+}
+
+.lead-card.status-not-interested {
+  border-left-color: #dc3545;
+}
+
+.lead-card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lead-name {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+}
+
+.lead-name:hover {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.lead-meta {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lead-card-body {
+  padding: 1rem;
+}
+
+.lead-info-row {
+  display: flex;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.lead-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.lead-info-item {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 0.75rem;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.info-label .material-icons {
+  font-size: 1rem;
+  margin-right: 0.25rem;
+  opacity: 0.7;
+}
+
+.info-value {
+  font-size: 0.875rem;
+}
+
+.lead-card-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status-badge.new {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #0066cc;
+}
+
+.status-badge.contacted {
+  background-color: rgba(23, 162, 184, 0.1);
+  color: #17a2b8;
+}
+
+.status-badge.visit-scheduled {
+  background-color: rgba(111, 66, 193, 0.1);
+  color: #6f42c1;
+}
+
+.status-badge.visit-completed {
+  background-color: rgba(253, 126, 20, 0.1);
+  color: #fd7e14;
+}
+
+.status-badge.pending-evaluation {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.status-badge.evaluated {
+  background-color: rgba(32, 201, 151, 0.1);
+  color: #20c997;
+}
+
+.status-badge.pending-principal-consent {
+  background-color: rgba(23, 162, 184, 0.1);
+  color: #17a2b8;
+}
+
+.status-badge.payment-pending {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.status-badge.payment-verified {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.status-badge.converted {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.status-badge.dormant {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+}
+
+.status-badge.not-interested {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .lead-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .lead-info-item {
+    min-width: 100%;
+  }
+}
