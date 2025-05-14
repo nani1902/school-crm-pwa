@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCreateLead } from '../hooks/useLeads';
+import { useOffline } from '../contexts/OfflineContext';
+import OfflineStorage from '../services/OfflineStorage';
 import './AddLead.css';
 
 const AddLead = () => {
   const navigate = useNavigate();
   const { mutate: createLead, isLoading, isError, error } = useCreateLead();
+  const { isOffline } = useOffline();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -73,30 +76,42 @@ const AddLead = () => {
       delete submissionData.interested_class;
     }
     
-    createLead(submissionData, {
-      onSuccess: (data) => {
-        // Navigate to the detail page of the newly created lead
-        navigate(`/leads/${data.id}`);
-      },
-      onError: (error) => {
-        console.error('Error creating lead:', error);
-        
-        // Handle API validation errors
-        if (error.response?.data) {
-          const apiErrors = error.response.data;
-          const formattedErrors = {};
-          
-          // Convert API errors to our form error format
-          Object.keys(apiErrors).forEach(key => {
-            formattedErrors[key] = Array.isArray(apiErrors[key]) 
-              ? apiErrors[key].join(' ') 
-              : apiErrors[key];
-          });
-          
-          setFormErrors(formattedErrors);
-        }
+    if (isOffline) {
+      // Save lead offline
+      const offlineLead = OfflineStorage.saveOfflineLead(submissionData);
+      if (offlineLead) {
+        // Show success message (could be implemented with a toast or alert)
+        console.log('Lead saved offline:', offlineLead);
+        // Navigate to the lead list
+        navigate('/leads');
       }
-    });
+    } else {
+      // Online mode - use existing mutation logic
+      createLead(submissionData, {
+        onSuccess: (data) => {
+          // Navigate to the detail page of the newly created lead
+          navigate(`/leads/${data.id}`);
+        },
+        onError: (error) => {
+          console.error('Error creating lead:', error);
+          
+          // Handle API validation errors
+          if (error.response?.data) {
+            const apiErrors = error.response.data;
+            const formattedErrors = {};
+            
+            // Convert API errors to our form error format
+            Object.keys(apiErrors).forEach(key => {
+              formattedErrors[key] = Array.isArray(apiErrors[key]) 
+                ? apiErrors[key].join(' ') 
+                : apiErrors[key];
+            });
+            
+            setFormErrors(formattedErrors);
+          }
+        }
+      });
+    }
   };
 
   return (
@@ -111,12 +126,19 @@ const AddLead = () => {
         </div>
       </div>
       
+      {isOffline && (
+        <div className="offline-alert">
+          <span className="material-icons">cloud_off</span>
+          <span>You are offline. This lead will be saved locally and synced when you reconnect.</span>
+        </div>
+      )}
+      
       <div className="card">
         <div className="card-header">
           <h3>Lead Information</h3>
         </div>
         <div className="card-body">
-          {isError && (
+          {isError && !isOffline && (
             <div className="alert alert-danger mb-4">
               {error?.message || 'An error occurred while creating the lead. Please try again.'}
             </div>
@@ -341,7 +363,7 @@ const AddLead = () => {
                 className="btn btn-primary"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating...' : 'Create Lead'}
+                {isLoading ? 'Creating...' : isOffline ? 'Save Offline' : 'Create Lead'}
               </button>
             </div>
           </form>

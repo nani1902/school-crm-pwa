@@ -6,6 +6,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
+  "gcm_sender_id": "103953800507",
   "icons": [
     {
       "src": "/static/pwa/icons/icon-72x72.png",
@@ -46,6 +47,25 @@
       "src": "/static/pwa/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "orientation": "any",
+  "shortcuts": [
+    {
+      "name": "Add Lead",
+      "short_name": "Add Lead",
+      "description": "Add a new lead",
+      "url": "/leads/new",
+      "icons": [{ "src": "/static/pwa/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/static/pwa/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

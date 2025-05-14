@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBell from './NotificationBell';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -47,6 +48,7 @@ const Navbar = () => {
           {/* Page title could go here */}
         </div>
         <div className="navbar-right">
+          <NotificationBell />
           <div className="user-dropdown" ref={dropdownRef}>
             <button
               className="avatar-button"

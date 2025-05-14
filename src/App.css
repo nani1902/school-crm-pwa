@@ -37,6 +37,29 @@ body {
   padding: 1rem;
 }
 
+/* Offline mode UI elements */
+.offline-alert {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ffeeba;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.offline-lead-indicator {
+  display: inline-block;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
 /* Utility classes */
 .text-muted {
   color: #6c757d;

@@ -2,9 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { QueryProvider } from './contexts/QueryContext';
+import { OfflineProvider } from './contexts/OfflineContext';
 import './App.css';
 import ApiTester from './components/ApiTester';
 import apiService from './api/apiService';
+import OfflineSyncManager from './components/OfflineSyncManager';
 // Layout components
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
@@ -115,305 +117,308 @@ function App() {
 
   return (
     <AuthProvider>
-      <QueryProvider>
-        <Router>
-          <Routes>
-            {/* Public routes without layout */}
-            <Route path="/login" element={
-              <PublicPage>
-                <Login />
-              </PublicPage>
-            } />
-            
-            <Route path="/api-test" element={
-              <PublicPage>
-                <ApiTester />
-              </PublicPage>
-            } />
-            
-            {/* Protected routes with layout */}
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Leads routes */}
-            <Route 
-              path="/leads" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <LeadsList />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/leads/new" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AddLead />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/leads/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <LeadDetail />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/leads/:id/edit" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <EditLead />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/leads/:id/log" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <LogInteraction />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/leads/:id/schedule" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <ScheduleAppointment />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Teacher routes */}
-            <Route 
-              path="/evaluations/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <SubmitEvaluation />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Office desk routes */}
-            <Route 
-              path="/verify-payment/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <VerifyPayment />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/complete-onboarding/:id" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CompleteOnboarding />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin routes */}
-            <Route 
-              path="/admin/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminDashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/users" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminUsers />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/leads" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminLeads />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/pipeline" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminPipeline />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/admissions" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AdminAdmissions />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/system-log" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <SystemLog />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/django" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <DjangoAdmin />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Analytics routes */}
-            <Route 
-              path="/analytics" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Analytics />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/analytics/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <AnalyticsDashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/analytics/lead-conversion" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <LeadConversionReport />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/analytics/performance" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <PerformanceReport />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* User profile & settings */}
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Profile />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Settings />
-                  </AppLayout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* 404 Not Found route */}
-            <Route 
-              path="*" 
-              element={
+      <OfflineProvider>
+        <QueryProvider>
+          <Router>
+            <OfflineSyncManager />
+            <Routes>
+              {/* Public routes without layout */}
+              <Route path="/login" element={
                 <PublicPage>
-                  <NotFound />
+                  <Login />
                 </PublicPage>
-              } 
-            />
-          </Routes>
-        </Router>
-      </QueryProvider>
+              } />
+              
+              <Route path="/api-test" element={
+                <PublicPage>
+                  <ApiTester />
+                </PublicPage>
+              } />
+              
+              {/* Protected routes with layout */}
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Dashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Dashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Leads routes */}
+              <Route 
+                path="/leads" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <LeadsList />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/leads/new" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AddLead />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/leads/:id" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <LeadDetail />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/leads/:id/edit" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <EditLead />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/leads/:id/log" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <LogInteraction />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/leads/:id/schedule" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <ScheduleAppointment />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Teacher routes */}
+              <Route 
+                path="/evaluations/:id" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <SubmitEvaluation />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Office desk routes */}
+              <Route 
+                path="/verify-payment/:id" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <VerifyPayment />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/complete-onboarding/:id" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <CompleteOnboarding />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Admin routes */}
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminDashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/users" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminUsers />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/leads" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminLeads />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/pipeline" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminPipeline />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/admissions" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AdminAdmissions />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/system-log" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <SystemLog />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/django" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <DjangoAdmin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Analytics routes */}
+              <Route 
+                path="/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Analytics />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/analytics/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <AnalyticsDashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/analytics/lead-conversion" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <LeadConversionReport />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/analytics/performance" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <PerformanceReport />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* User profile & settings */}
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Profile />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Settings />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* 404 Not Found route */}
+              <Route 
+                path="*" 
+                element={
+                  <PublicPage>
+                    <NotFound />
+                  </PublicPage>
+                } 
+              />
+            </Routes>
+          </Router>
+        </QueryProvider>
+      </OfflineProvider>
     </AuthProvider>
   );
 }

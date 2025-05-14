@@ -267,17 +267,41 @@ export const leadsAPI = {
   }
 };
 
+// Only add this updated function to your existing apiService.js file
+// replacing the current getDashboardData function in the dashboardAPI object
+
 export const dashboardAPI = {
   getDashboardData: async () => {
     try {
-      console.log('Fetching dashboard data');
-      const response = await apiService.get('dashboard/');
+      console.log('Fetching dashboard data from API');
+      
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const url = `dashboard/?_t=${timestamp}`;
+      
+      const response = await apiService.get(url);
+      console.log('Dashboard API response status:', response.status);
+      console.log('Dashboard API raw response:', response);
+      console.log('Dashboard API response data:', response.data);
+      
+      // Check for leads needing assignment specifically
+      if (response.data && response.data.leads_needing_assignment) {
+        console.log('Leads needing assignment count:', 
+          response.data.leads_needing_assignment.length);
+        console.log('Leads needing assignment data:', 
+          response.data.leads_needing_assignment);
+      } else {
+        console.warn('No leads_needing_assignment found in response or it is empty');
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      console.error('Error details:', error.response || error.message);
       throw error;
     }
   }
+  // Keep other methods in dashboardAPI unchanged
 };
 
 export const studentsAPI = {

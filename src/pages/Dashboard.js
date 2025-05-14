@@ -1,8 +1,8 @@
 // src/pages/Dashboard.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import useDashboard from '../hooks/useDashboard';
+import { dashboardAPI } from '../api/apiService';
 import './Dashboard.css';
 
 // Components
@@ -11,8 +11,49 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 
 const Dashboard = () => {
-  const { role } = useAuth();
-  const { data: dashboardData, isLoading, error, refetch } = useDashboard();
+  const { role, user } = useAuth();
+  const [dashboardData, setDashboardData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    console.log('Current user role:', role);
+    console.log('Current user:', user);
+    
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        console.log('Fetching dashboard data...');
+        const data = await dashboardAPI.getDashboardData();
+        console.log('Dashboard data received:', data);
+        console.log('Leads needing assignment:', data.leads_needing_assignment);
+        setDashboardData(data);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [role, user]);
+
+  const refetch = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await dashboardAPI.getDashboardData();
+      console.log('Refetched dashboard data:', data);
+      setDashboardData(data);
+    } catch (err) {
+      console.error('Failed to refetch dashboard data:', err);
+      setError('Failed to refresh dashboard data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Render appropriate content based on loading and error states
   if (isLoading) {
@@ -20,7 +61,7 @@ const Dashboard = () => {
   }
 
   if (error) {
-    return <ErrorAlert message="Failed to load dashboard data. Please try again later." onRetry={refetch} />;
+    return <ErrorAlert message={error} onRetry={refetch} />;
   }
 
   // Render different dashboards based on user role
@@ -68,7 +109,7 @@ const Dashboard = () => {
                 <span className="badge">{dashboardData.leads_needing_assignment?.length || 0}</span>
               </div>
               <div className="card-body">
-                {dashboardData.leads_needing_assignment?.length > 0 ? (
+                {dashboardData.leads_needing_assignment && dashboardData.leads_needing_assignment.length > 0 ? (
                   <ul className="leads-list">
                     {dashboardData.leads_needing_assignment.map(lead => (
                       <li key={lead.id} className="lead-item">
@@ -107,7 +148,7 @@ const Dashboard = () => {
                 <span className="badge">{dashboardData.leads_not_contacted?.length || 0}</span>
               </div>
               <div className="card-body">
-                {dashboardData.leads_not_contacted?.length > 0 ? (
+                {dashboardData.leads_not_contacted && dashboardData.leads_not_contacted.length > 0 ? (
                   <ul className="leads-list">
                     {dashboardData.leads_not_contacted.map(lead => (
                       <li key={lead.id} className="lead-item">
@@ -135,6 +176,9 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          
+          {/* API Tester Section (Development Only) */}
+          {process.env.NODE_ENV !== 'production' && <DashboardAPITester />}
         </>
       );
     }
@@ -457,7 +501,7 @@ const Dashboard = () => {
             <span className="btn-text">Add New Lead</span>
           </Link>
           <button 
-            onClick={() => refetch()} 
+            onClick={refetch} 
             className="btn btn-outline-secondary"
             title="Refresh dashboard data"
           >
@@ -467,6 +511,112 @@ const Dashboard = () => {
       </div>
 
       {renderDashboardContent()}
+    </div>
+  );
+};
+
+// Dashboard API Tester Component (Development Only)
+const DashboardAPITester = () => {
+  const [apiResponse, setApiResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [rawResponse, setRawResponse] = useState(false);
+
+  const testDashboardAPI = async () => {
+    setLoading(true);
+    try {
+      const data = await dashboardAPI.getDashboardData();
+      setApiResponse(data);
+      console.log('API tester response:', data);
+    } catch (error) {
+      console.error('API test error:', error);
+      setApiResponse({ error: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ 
+      padding: '20px', 
+      border: '1px solid #eee', 
+      borderRadius: '8px',
+      marginTop: '20px',
+      backgroundColor: '#f9f9f9'
+    }}>
+      <h3 style={{ marginBottom: '15px' }}>Dashboard API Tester (Dev Only)</h3>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+        <button 
+          onClick={testDashboardAPI}
+          disabled={loading}
+          style={{
+            padding: '8px 15px',
+            backgroundColor: '#0066cc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+          }}
+        >
+          {loading ? 'Loading...' : 'Test Dashboard API'}
+        </button>
+        <button
+          onClick={() => setRawResponse(!rawResponse)}
+          style={{
+            padding: '8px 15px',
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+          }}
+        >
+          {rawResponse ? 'Show Specific Data' : 'Show Raw Response'}
+        </button>
+      </div>
+
+      {apiResponse && (
+        <div>
+          {rawResponse ? (
+            <div>
+              <h4>Raw API Response:</h4>
+              <pre style={{ 
+                background: '#f5f5f5', 
+                padding: '10px', 
+                borderRadius: '4px',
+                overflow: 'auto',
+                maxHeight: '400px'
+              }}>
+                {JSON.stringify(apiResponse, null, 2)}
+              </pre>
+            </div>
+          ) : (
+            <>
+              <div style={{ marginTop: '10px' }}>
+                <h4>Leads Needing Assignment:</h4>
+                <pre style={{ 
+                  background: '#f5f5f5', 
+                  padding: '10px', 
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  maxHeight: '200px'
+                }}>
+                  {JSON.stringify(apiResponse.leads_needing_assignment || [], null, 2)}
+                </pre>
+              </div>
+              <div style={{ marginTop: '10px' }}>
+                <h4>Leads Not Contacted:</h4>
+                <pre style={{ 
+                  background: '#f5f5f5', 
+                  padding: '10px', 
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  maxHeight: '200px'
+                }}>
+                  {JSON.stringify(apiResponse.leads_not_contacted || [], null, 2)}
+                </pre>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

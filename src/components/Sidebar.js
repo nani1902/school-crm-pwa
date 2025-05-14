@@ -47,6 +47,7 @@ const Sidebar = () => {
       { to: '/admin/dashboard', label: 'Admin Dashboard', icon: 'admin_panel_settings' },
       { to: '/admin/users', label: 'Manage Users', icon: 'group' },
       { to: '/admin/leads', label: 'Manage Leads', icon: 'list_alt' },
+      { to: '/admin/notifications', label: 'Notifications', icon: 'notifications' },
       { to: '/admin/pipeline', label: 'Pipeline View', icon: 'stacked_line_chart' },
       { to: '/admin/admissions', label: 'Manage Admissions', icon: 'school' },
       { to: '/admin/system-log', label: 'System Log', icon: 'receipt_long' },

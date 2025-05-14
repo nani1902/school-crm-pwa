@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLeads } from '../hooks/useLeads';
+import { useOffline } from '../contexts/OfflineContext';
+import OfflineStorage from '../services/OfflineStorage';
 import './LeadsList.css';
 
 // Components
@@ -10,6 +12,9 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 
 const LeadsList = () => {
+  // Offline context
+  const { isOffline } = useOffline();
+  
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -34,20 +39,42 @@ const LeadsList = () => {
 
   // Fetch leads with React Query
   const { 
-    data: leads = [], 
+    data: onlineLeads = [], 
     isLoading, 
     error, 
     refetch 
   } = useLeads(filterParams);
+  
+  // Combine online and offline leads
+  const [allLeads, setAllLeads] = useState([]);
+  
+  // Load offline leads and combine with online leads
+  useEffect(() => {
+    if (isOffline) {
+      // When offline, use cached leads + offline created leads
+      const cachedLeads = OfflineStorage.getCachedLeads();
+      const offlineLeads = OfflineStorage.getOfflineLeads();
+      setAllLeads([...cachedLeads, ...offlineLeads]);
+    } else {
+      // When online, use fetched leads + offline created leads
+      const offlineLeads = OfflineStorage.getOfflineLeads();
+      setAllLeads([...onlineLeads, ...offlineLeads]);
+      
+      // Cache online leads for offline use
+      if (onlineLeads.length > 0) {
+        OfflineStorage.saveLeadsToCache(onlineLeads);
+      }
+    }
+  }, [isOffline, onlineLeads]);
   
   // Client-side filtering for search
   const [filteredLeads, setFilteredLeads] = useState([]);
   
   // Apply search filter (client-side)
   const applySearchFilter = useCallback(() => {
-    if (!leads) return;
+    if (!allLeads.length) return;
     
-    let result = [...leads];
+    let result = [...allLeads];
     
     // Apply search term filter
     if (searchTerm) {
@@ -61,13 +88,18 @@ const LeadsList = () => {
       );
     }
     
+    // If status filter is applied, filter by status
+    if (statusFilter) {
+      result = result.filter(lead => lead.status === statusFilter);
+    }
+    
     setFilteredLeads(result);
-  }, [leads, searchTerm]);
+  }, [allLeads, searchTerm, statusFilter]);
   
   // Update filtered leads when leads or search term changes
   useEffect(() => {
     applySearchFilter();
-  }, [applySearchFilter, leads]);
+  }, [applySearchFilter, allLeads]);
   
   // Handle status filter change
   const handleStatusFilterChange = (e) => {
@@ -83,13 +115,17 @@ const LeadsList = () => {
   const handleFilterSubmit = (e) => {
     e.preventDefault();
     
-    // When status filter is applied, update the API query params
-    const newParams = {};
-    if (statusFilter) {
-      newParams.status = statusFilter;
+    // When online and status filter is applied, update the API query params
+    if (!isOffline && statusFilter) {
+      const newParams = {};
+      if (statusFilter) {
+        newParams.status = statusFilter;
+      }
+      setFilterParams(newParams);
+    } else {
+      // When offline, we just apply the filter locally
+      applySearchFilter();
     }
-    
-    setFilterParams(newParams);
   };
   
   // Clear all filters
@@ -101,16 +137,21 @@ const LeadsList = () => {
   
   // Handle refresh button click
   const handleRefresh = () => {
-    refetch();
+    if (!isOffline) {
+      refetch();
+    }
   };
 
-  if (isLoading) {
+  if (isLoading && !isOffline) {
     return <LoadingSpinner message="Loading leads..." />;
   }
 
-  if (error) {
+  if (error && !isOffline) {
     return <ErrorAlert message="Failed to load leads. Please try again later." onRetry={handleRefresh} />;
   }
+
+  // Get count of offline leads
+  const offlineLeadsCount = OfflineStorage.getOfflineLeads().length;
 
   return (
     <div className="leads-list-container">
@@ -121,12 +162,21 @@ const LeadsList = () => {
             <span className="material-icons">add</span>
             <span className="btn-text">Add New Lead</span>
           </Link>
-          <button className="btn btn-outline-primary" onClick={handleRefresh}>
-            <span className="material-icons">refresh</span>
-            <span className="btn-text">Refresh</span>
-          </button>
+          {!isOffline && (
+            <button className="btn btn-outline-primary" onClick={handleRefresh}>
+              <span className="material-icons">refresh</span>
+              <span className="btn-text">Refresh</span>
+            </button>
+          )}
         </div>
       </div>
+      
+      {isOffline && (
+        <div className="offline-alert">
+          <span className="material-icons">cloud_off</span>
+          <span>You are currently offline. You can view leads and add new ones.</span>
+        </div>
+      )}
       
       {/* Filters */}
       <div className="filters-card">
@@ -205,7 +255,9 @@ const LeadsList = () => {
                 className="tag-remove" 
                 onClick={() => {
                   setStatusFilter('');
-                  setFilterParams({});
+                  if (!isOffline) {
+                    setFilterParams({});
+                  }
                 }}
               >
                 <span className="material-icons">close</span>
@@ -238,14 +290,25 @@ const LeadsList = () => {
       
       {/* Results count */}
       <div className="results-count">
-        Showing {filteredLeads.length} of {leads.length} leads
+        Showing {filteredLeads.length} of {allLeads.length} leads
+        {isOffline && offlineLeadsCount > 0 && (
+          <span> (including {offlineLeadsCount} offline leads)</span>
+        )}
       </div>
       
       {/* Leads list */}
       {filteredLeads.length > 0 ? (
         <div className="leads-list">
           {filteredLeads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} />
+            <div key={lead.id || lead.temp_id}>
+              <LeadCard lead={lead} />
+              {lead.is_offline && (
+                <div className="offline-lead-indicator">
+                  <span className="material-icons">cloud_off</span>
+                  Offline - Will sync when online
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (

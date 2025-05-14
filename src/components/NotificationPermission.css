@@ -1,0 +1,118 @@
+/* src/components/NotificationPermission.css */
+.notification-permission {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.notification-permission.unsupported {
+  background-color: #f8f9fa;
+  opacity: 0.8;
+}
+
+.notification-icon {
+  background-color: #e6f2ff;
+  color: #0066cc;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.notification-permission.unsupported .notification-icon {
+  background-color: #f5f5f5;
+  color: #6c757d;
+}
+
+.notification-icon .material-icons {
+  font-size: 24px;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.notification-content p {
+  margin: 0 0 1rem;
+  color: #666;
+}
+
+.notification-error {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.notification-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.notification-button.subscribe {
+  background-color: #0066cc;
+  color: white;
+}
+
+.notification-button.subscribe:hover {
+  background-color: #0055aa;
+}
+
+.notification-button.unsubscribe {
+  background-color: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.notification-button.unsubscribe:hover {
+  background-color: #e9ecef;
+}
+
+.notification-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notification-button .material-icons {
+  font-size: 16px;
+  margin-right: 0.5rem;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}

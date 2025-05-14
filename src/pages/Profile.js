@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationPermission from '../components/NotificationPermission';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -25,13 +26,23 @@ const Profile = () => {
           <p>This is a placeholder for the user profile page. The complete implementation will include user details and options to update profile information.</p>
         </div>
       </div>
+      
+      <div className="card">
+        <div className="card-header">
+          <h3>Notification Settings</h3>
+        </div>
+        <div className="card-body">
+          <NotificationPermission />
+          <p className="text-muted mt-3">
+            <small>
+              Receive notifications for lead assignments, status changes, and other important updates. 
+              Notifications will appear on your device, even when you're not using the app.
+            </small>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Profile;
-// This component is a placeholder for the user profile page.
-// The complete implementation will include user details and options to update profile information.
-// The component is structured similarly to the other components in the application, with a container, page header, and card layout.
-// The page header includes a title, and the card body contains user information and a placeholder paragraph.
-// The component is exported as the default export, making it available for use in other parts of the application.
