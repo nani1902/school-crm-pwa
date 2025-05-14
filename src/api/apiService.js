@@ -1,4 +1,6 @@
 import axios from 'axios';
+import TokenService from '../services/TokenService';
+import CSRFService from '../services/CSRFService';
 
 // Backend API URL - set to your PythonAnywhere domain
 const API_URL = 'https://mahesh1902.pythonanywhere.com/crm/api/';
@@ -16,14 +18,23 @@ const apiService = axios.create({
   timeout: 15000
 });
 
-// Add a request interceptor to include authentication token
+// Add a request interceptor to include authentication token and CSRF token
 apiService.interceptors.request.use(
   async (config) => {
-    // Get token from localStorage 
-    const token = localStorage.getItem('authToken');
+    // Get token using TokenService
+    const token = TokenService.getToken();
     if (token) {
       config.headers.Authorization = `Token ${token}`;
     }
+    
+    // Add CSRF token for non-GET requests
+    if (config.method !== 'get') {
+      const csrfToken = CSRFService.getCSRFToken();
+      if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+      }
+    }
+    
     console.log(`Making ${config.method?.toUpperCase()} request to: ${API_URL}${config.url}`);
     return config;
   },
@@ -33,25 +44,54 @@ apiService.interceptors.request.use(
   }
 );
 
-// Handle session expiry
+// Handle session expiry and token refresh
 apiService.interceptors.response.use(
   (response) => {
     console.log(`Received response from ${response.config.url} with status: ${response.status}`);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error('Response error:', error);
+    
+    // Get the original request that caused the error
+    const originalRequest = error.config;
     
     if (error.response) {
       console.log(`Error response status: ${error.response.status}`);
       console.log('Error response data:', error.response.data);
       
-      if (error.response.status === 401) {
-        // Unauthorized, token may be expired
-        console.log('Authentication error - clearing token and redirecting to login');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('userData');
+      // Handle 401 (Unauthorized) errors by refreshing the token
+      if (error.response.status === 401 && !originalRequest._retry) {
+        console.log('Unauthorized error - attempting token refresh');
+        
+        // Mark this request as already retried to prevent infinite loops
+        originalRequest._retry = true;
+        
+        try {
+          // Attempt to refresh the token
+          const refreshSuccess = await TokenService.refreshToken();
+          
+          if (refreshSuccess) {
+            console.log('Token refresh successful, retrying original request');
+            
+            // Update the token in the original request
+            originalRequest.headers.Authorization = `Token ${TokenService.getToken()}`;
+            
+            // Retry the original request
+            return apiService(originalRequest);
+          } else {
+            console.log('Token refresh failed, logging out user');
+            // If refresh fails, log out the user
+            TokenService.clearAuthData();
+            window.location.href = '/login';
+            return Promise.reject(error);
+          }
+        } catch (refreshError) {
+          console.error('Error during token refresh:', refreshError);
+          TokenService.clearAuthData();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
       }
     } else if (error.request) {
       // Request was made but no response received
@@ -93,9 +133,8 @@ export const authAPI = {
       
       if (response.data && response.data.token) {
         console.log('Login successful, saving token and user data');
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('userRole', response.data.staff_role || '');
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
+        TokenService.saveToken(response.data.token);
+        TokenService.saveUserData(response.data.staff_role || '', response.data.user);
         return {
           success: true,
           data: response.data
@@ -136,34 +175,23 @@ export const authAPI = {
   },
   
   logout: async () => {
-    console.log('Logging out - clearing local storage');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userData');
+    console.log('Logging out - clearing auth data');
+    TokenService.clearAuthData();
     return { success: true };
   },
   
   isAuthenticated: () => {
-    const hasToken = !!localStorage.getItem('authToken');
+    const hasToken = !!TokenService.getToken();
     console.log(`Authentication check: ${hasToken ? 'Authenticated' : 'Not authenticated'}`);
     return hasToken;
   },
   
   getUserRole: () => {
-    return localStorage.getItem('userRole') || '';
+    return TokenService.getUserRole();
   },
   
   getCurrentUser: () => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        return JSON.parse(userData);
-      } catch (e) {
-        console.error('Error parsing user data from localStorage:', e);
-        return null;
-      }
-    }
-    return null;
+    return TokenService.getUserData();
   }
 };
 

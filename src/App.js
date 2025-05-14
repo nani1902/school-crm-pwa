@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { QueryProvider } from './contexts/QueryContext';
 import './App.css';
 import ApiTester from './components/ApiTester';
+import apiService from './api/apiService';
 // Layout components
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
-
+import CSRFService from './services/CSRFService';
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -27,8 +29,14 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
-// Import test api functionality (optional but useful for debugging)
-import apiService from './api/apiService';
+// New page imports
+import AdminDashboard from './pages/AdminDashboard';
+import AdminLeads from './pages/AdminLeads';
+import SystemLog from './pages/SystemLog';
+import DjangoAdmin from './pages/DjangoAdmin';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import LeadConversionReport from './pages/LeadConversionReport';
+import PerformanceReport from './pages/PerformanceReport';
 
 // Loading component for better UX during auth checks
 const LoadingScreen = () => (
@@ -86,246 +94,327 @@ const PublicPage = ({ children }) => {
 
 // Main App component
 function App() {
-  // Test API connection on app load to help with debugging
+  // CSRF initialization - moved inside the component
   React.useEffect(() => {
-    const checkApi = async () => {
-      try {
-        if (apiService.testApiConnection) {
-          const result = await apiService.testApiConnection();
-          console.log('API connection test on app load:', result ? 'Success' : 'Failed');
-        }
-      } catch (error) {
-        console.error('Error testing API on app load:', error);
-      }
-    };
+    // Initialize CSRF protection
+    CSRFService.initCSRF().then(success => {
+      console.log(`CSRF initialization ${success ? 'successful' : 'failed'}`);
+    });
     
-    checkApi();
+    // API connectivity test - directly executed to avoid the unused variable warning
+    try {
+      if (apiService && apiService.testApiConnection) {
+        apiService.testApiConnection().then(result => {
+          console.log('API connection test on app load:', result ? 'Success' : 'Failed');
+        });
+      }
+    } catch (error) {
+      console.error('Error testing API on app load:', error);
+    }
   }, []);
 
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public routes without layout */}
-          <Route path="/login" element={
-            <PublicPage>
-              <Login />
-            </PublicPage>
-          } />
-          
-          <Route path="/api-test" element={
-            <PublicPage>
-              <ApiTester />
-            </PublicPage>
-          } />
-          
-          {/* Protected routes with layout */}
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Leads routes */}
-          <Route 
-            path="/leads" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LeadsList />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/leads/new" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AddLead />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/leads/:id" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LeadDetail />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/leads/:id/edit" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <EditLead />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/leads/:id/log" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LogInteraction />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/leads/:id/schedule" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ScheduleAppointment />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Teacher routes */}
-          <Route 
-            path="/evaluations/:id" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <SubmitEvaluation />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Office desk routes */}
-          <Route 
-            path="/verify-payment/:id" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <VerifyPayment />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/complete-onboarding/:id" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <CompleteOnboarding />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin routes */}
-          <Route 
-            path="/admin/users" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AdminUsers />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin/pipeline" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AdminPipeline />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin/admissions" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AdminAdmissions />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Analytics routes */}
-          <Route 
-            path="/analytics" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Analytics />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* User profile & settings */}
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Profile />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Settings />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* 404 Not Found route */}
-          <Route 
-            path="*" 
-            element={
+      <QueryProvider>
+        <Router>
+          <Routes>
+            {/* Public routes without layout */}
+            <Route path="/login" element={
               <PublicPage>
-                <NotFound />
+                <Login />
               </PublicPage>
-            } 
-          />
-        </Routes>
-      </Router>
+            } />
+            
+            <Route path="/api-test" element={
+              <PublicPage>
+                <ApiTester />
+              </PublicPage>
+            } />
+            
+            {/* Protected routes with layout */}
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Leads routes */}
+            <Route 
+              path="/leads" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LeadsList />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/leads/new" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AddLead />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/leads/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LeadDetail />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/leads/:id/edit" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <EditLead />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/leads/:id/log" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LogInteraction />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/leads/:id/schedule" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ScheduleAppointment />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Teacher routes */}
+            <Route 
+              path="/evaluations/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <SubmitEvaluation />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Office desk routes */}
+            <Route 
+              path="/verify-payment/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <VerifyPayment />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/complete-onboarding/:id" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CompleteOnboarding />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin routes */}
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AdminDashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AdminUsers />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/leads" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AdminLeads />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/pipeline" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AdminPipeline />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/admissions" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AdminAdmissions />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/system-log" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <SystemLog />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/django" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <DjangoAdmin />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Analytics routes */}
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Analytics />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/analytics/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AnalyticsDashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/analytics/lead-conversion" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LeadConversionReport />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/analytics/performance" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PerformanceReport />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* User profile & settings */}
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Profile />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Settings />
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* 404 Not Found route */}
+            <Route 
+              path="*" 
+              element={
+                <PublicPage>
+                  <NotFound />
+                </PublicPage>
+              } 
+            />
+          </Routes>
+        </Router>
+      </QueryProvider>
     </AuthProvider>
   );
 }
-
 export default App;

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// src/pages/LeadsList.js
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { leadsAPI } from '../api/apiService';
+import { useLeads } from '../hooks/useLeads';
 import './LeadsList.css';
 
 // Components
@@ -9,14 +10,10 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 
 const LeadsList = () => {
-  const [leads, setLeads] = useState([]);
-  const [filteredLeads, setFilteredLeads] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [filterParams, setFilterParams] = useState({});
   
   // Lead status options for filter
   const statusOptions = [
@@ -35,16 +32,22 @@ const LeadsList = () => {
     { value: 'Not Interested', label: 'Not Interested' },
   ];
 
-  // Define applyFilters as useCallback to avoid recreating it on every render
-  const applyFilters = useCallback(() => {
+  // Fetch leads with React Query
+  const { 
+    data: leads = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useLeads(filterParams);
+  
+  // Client-side filtering for search
+  const [filteredLeads, setFilteredLeads] = useState([]);
+  
+  // Apply search filter (client-side)
+  const applySearchFilter = useCallback(() => {
     if (!leads) return;
     
     let result = [...leads];
-    
-    // Apply status filter
-    if (statusFilter) {
-      result = result.filter(lead => lead.status === statusFilter);
-    }
     
     // Apply search term filter
     if (searchTerm) {
@@ -59,32 +62,12 @@ const LeadsList = () => {
     }
     
     setFilteredLeads(result);
-  }, [leads, searchTerm, statusFilter]); // Include all dependencies
+  }, [leads, searchTerm]);
   
-  // Fetch leads on component mount
+  // Update filtered leads when leads or search term changes
   useEffect(() => {
-    fetchLeads();
-  }, []);
-  
-  // Apply filters when dependencies change
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]); // Only depend on the applyFilters function
-  
-  // Fetch leads from API
-  const fetchLeads = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await leadsAPI.getLeads();
-      setLeads(data.results || data);
-    } catch (err) {
-      console.error('Failed to fetch leads:', err);
-      setError('Failed to load leads. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    applySearchFilter();
+  }, [applySearchFilter, leads]);
   
   // Handle status filter change
   const handleStatusFilterChange = (e) => {
@@ -99,26 +82,34 @@ const LeadsList = () => {
   // Handle form submit/filter
   const handleFilterSubmit = (e) => {
     e.preventDefault();
-    applyFilters();
+    
+    // When status filter is applied, update the API query params
+    const newParams = {};
+    if (statusFilter) {
+      newParams.status = statusFilter;
+    }
+    
+    setFilterParams(newParams);
   };
   
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
+    setFilterParams({});
   };
   
   // Handle refresh button click
   const handleRefresh = () => {
-    fetchLeads();
+    refetch();
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner message="Loading leads..." />;
   }
 
   if (error) {
-    return <ErrorAlert message={error} onRetry={handleRefresh} />;
+    return <ErrorAlert message="Failed to load leads. Please try again later." onRetry={handleRefresh} />;
   }
 
   return (
@@ -212,7 +203,10 @@ const LeadsList = () => {
               <button 
                 type="button" 
                 className="tag-remove" 
-                onClick={() => setStatusFilter('')}
+                onClick={() => {
+                  setStatusFilter('');
+                  setFilterParams({});
+                }}
               >
                 <span className="material-icons">close</span>
               </button>

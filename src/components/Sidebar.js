@@ -1,3 +1,4 @@
+// Modified src/components/Sidebar.js
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,35 +36,38 @@ const Sidebar = () => {
 
   // Define navigation links based on user role
   const getNavLinks = () => {
-    // Common links for all users
+    // Main navigation links
     const links = [
       { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/leads', label: 'Leads', icon: 'person_add' },
+      { to: '/leads/new', label: 'Add New Lead', icon: 'person_add' },
     ];
 
-    // Role-specific links
+    // Administration section links
+    const adminLinks = [
+      { to: '/admin/dashboard', label: 'Admin Dashboard', icon: 'admin_panel_settings' },
+      { to: '/admin/users', label: 'Manage Users', icon: 'group' },
+      { to: '/admin/leads', label: 'Manage Leads', icon: 'list_alt' },
+      { to: '/admin/pipeline', label: 'Pipeline View', icon: 'stacked_line_chart' },
+      { to: '/admin/admissions', label: 'Manage Admissions', icon: 'school' },
+      { to: '/admin/system-log', label: 'System Log', icon: 'receipt_long' },
+      { to: '/admin/django', label: 'Django Admin', icon: 'code' },
+    ];
+
+    // Analytics & Reports section links
+    const analyticsLinks = [
+      { to: '/analytics/dashboard', label: 'Analytics Dashboard', icon: 'insights' },
+      { to: '/analytics/lead-conversion', label: 'Lead Conversion Report', icon: 'assessment' },
+      { to: '/analytics/performance', label: 'Performance Report', icon: 'bar_chart' },
+    ];
+
+    // Only add admin links if user has appropriate role
     if (role === 'Admin' || role === 'Principal') {
-      links.push(
-        { to: '/admin/users', label: 'Manage Users', icon: 'group' },
-        { to: '/admin/pipeline', label: 'Pipeline View', icon: 'stacked_line_chart' }
-      );
+      links.push({ section: 'Administration', items: adminLinks });
     }
     
-    if (role === 'Admin' || role === 'Office Desk') {
-      links.push({ to: '/admin/admissions', label: 'Admissions', icon: 'school' });
-    }
-    
-    if (role === 'Teaching Coordinator') {
-      links.push({ to: '/evaluations', label: 'Evaluations', icon: 'assignment' });
-    }
-    
-    if (role === 'Principal') {
-      links.push({ to: '/approvals', label: 'Pending Approvals', icon: 'approval' });
-    }
-    
-    // Add analytics for admin users
+    // Add analytics links for appropriate roles
     if (role === 'Admin') {
-      links.push({ to: '/analytics', label: 'Analytics', icon: 'insights' });
+      links.push({ section: 'Analytics & Reports', items: analyticsLinks });
     }
     
     return links;
@@ -90,22 +94,47 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`sidebar ${isMobile ? 'mobile' : ''} ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>School CRM</h2>
+          <h2><span className="text-primary">School</span>CRM</h2>
         </div>
         
         <nav className="sidebar-nav">
           <ul>
-            {navLinks.map((link) => (
-              <li key={link.to}>
-                <Link 
-                  to={link.to} 
-                  className={location.pathname === link.to ? 'active' : ''}
-                >
-                  <span className="material-icons">{link.icon}</span>
-                  <span className="nav-text">{link.label}</span>
-                </Link>
-              </li>
-            ))}
+            {navLinks.map((item, index) => {
+              // Check if it's a section with sub-items
+              if (item.section) {
+                return (
+                  <li key={index} className="nav-section">
+                    <div className="section-title">{item.section}</div>
+                    <ul className="sub-nav">
+                      {item.items.map((subItem, subIndex) => (
+                        <li key={`${index}-${subIndex}`}>
+                          <Link 
+                            to={subItem.to} 
+                            className={location.pathname === subItem.to ? 'active' : ''}
+                          >
+                            <span className="material-icons">{subItem.icon}</span>
+                            <span className="nav-text">{subItem.label}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                );
+              } else {
+                // Regular menu item
+                return (
+                  <li key={index}>
+                    <Link 
+                      to={item.to} 
+                      className={location.pathname === item.to ? 'active' : ''}
+                    >
+                      <span className="material-icons">{item.icon}</span>
+                      <span className="nav-text">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              }
+            })}
           </ul>
         </nav>
       </div>

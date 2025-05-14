@@ -1,46 +1,26 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/Dashboard.js
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { dashboardAPI } from '../api/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import useDashboard from '../hooks/useDashboard';
 import './Dashboard.css';
 
 // Components
 import StatCard from '../components/StatCard';
-// Removed the unused import: import LeadStatusCard from '../components/LeadStatusCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 
 const Dashboard = () => {
   const { role } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await dashboardAPI.getDashboardData();
-        setDashboardData(data);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  const { data: dashboardData, isLoading, error, refetch } = useDashboard();
 
   // Render appropriate content based on loading and error states
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   if (error) {
-    return <ErrorAlert message={error} />;
+    return <ErrorAlert message="Failed to load dashboard data. Please try again later." onRetry={refetch} />;
   }
 
   // Render different dashboards based on user role
@@ -476,6 +456,13 @@ const Dashboard = () => {
             <span className="material-icons">add</span>
             <span className="btn-text">Add New Lead</span>
           </Link>
+          <button 
+            onClick={() => refetch()} 
+            className="btn btn-outline-secondary"
+            title="Refresh dashboard data"
+          >
+            <span className="material-icons">refresh</span>
+          </button>
         </div>
       </div>
 
