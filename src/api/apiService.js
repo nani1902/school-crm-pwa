@@ -96,6 +96,10 @@ apiService.interceptors.response.use(
     } else if (error.request) {
       // Request was made but no response received
       console.error('No response received:', error.request);
+      // Handle offline state
+      if (!navigator.onLine) {
+        return Promise.reject(new Error('You are offline. Please check your internet connection.'));
+      }
     } else {
       // Something else happened while setting up the request
       console.error('Error setting up request:', error.message);

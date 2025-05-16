@@ -176,9 +176,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
-          {/* API Tester Section (Development Only) */}
-          {process.env.NODE_ENV !== 'production' && <DashboardAPITester />}
         </>
       );
     }
@@ -484,7 +481,7 @@ const Dashboard = () => {
         <div className="card-body">
           <p className="empty-message">
             <span className="material-icons">info</span>
-            Welcome to the School CRM system.
+            Welcome to the Sri Gurukulam Crm system.
           </p>
         </div>
       </div>
@@ -510,113 +507,8 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
       {renderDashboardContent()}
-    </div>
-  );
-};
-
-// Dashboard API Tester Component (Development Only)
-const DashboardAPITester = () => {
-  const [apiResponse, setApiResponse] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [rawResponse, setRawResponse] = useState(false);
-
-  const testDashboardAPI = async () => {
-    setLoading(true);
-    try {
-      const data = await dashboardAPI.getDashboardData();
-      setApiResponse(data);
-      console.log('API tester response:', data);
-    } catch (error) {
-      console.error('API test error:', error);
-      setApiResponse({ error: error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ 
-      padding: '20px', 
-      border: '1px solid #eee', 
-      borderRadius: '8px',
-      marginTop: '20px',
-      backgroundColor: '#f9f9f9'
-    }}>
-      <h3 style={{ marginBottom: '15px' }}>Dashboard API Tester (Dev Only)</h3>
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-        <button 
-          onClick={testDashboardAPI}
-          disabled={loading}
-          style={{
-            padding: '8px 15px',
-            backgroundColor: '#0066cc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
-        >
-          {loading ? 'Loading...' : 'Test Dashboard API'}
-        </button>
-        <button
-          onClick={() => setRawResponse(!rawResponse)}
-          style={{
-            padding: '8px 15px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
-        >
-          {rawResponse ? 'Show Specific Data' : 'Show Raw Response'}
-        </button>
-      </div>
-
-      {apiResponse && (
-        <div>
-          {rawResponse ? (
-            <div>
-              <h4>Raw API Response:</h4>
-              <pre style={{ 
-                background: '#f5f5f5', 
-                padding: '10px', 
-                borderRadius: '4px',
-                overflow: 'auto',
-                maxHeight: '400px'
-              }}>
-                {JSON.stringify(apiResponse, null, 2)}
-              </pre>
-            </div>
-          ) : (
-            <>
-              <div style={{ marginTop: '10px' }}>
-                <h4>Leads Needing Assignment:</h4>
-                <pre style={{ 
-                  background: '#f5f5f5', 
-                  padding: '10px', 
-                  borderRadius: '4px',
-                  overflow: 'auto',
-                  maxHeight: '200px'
-                }}>
-                  {JSON.stringify(apiResponse.leads_needing_assignment || [], null, 2)}
-                </pre>
-              </div>
-              <div style={{ marginTop: '10px' }}>
-                <h4>Leads Not Contacted:</h4>
-                <pre style={{ 
-                  background: '#f5f5f5', 
-                  padding: '10px', 
-                  borderRadius: '4px',
-                  overflow: 'auto',
-                  maxHeight: '200px'
-                }}>
-                  {JSON.stringify(apiResponse.leads_not_contacted || [], null, 2)}
-                </pre>
-              </div>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 };

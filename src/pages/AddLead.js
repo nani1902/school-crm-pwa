@@ -4,11 +4,15 @@ import { useCreateLead } from '../hooks/useLeads';
 import { useOffline } from '../contexts/OfflineContext';
 import OfflineStorage from '../services/OfflineStorage';
 import './AddLead.css';
+import NotificationService from '../services/NotificationService';
+import { isValidEmail, isValidPhoneNumber, isRequired, isValidDate, isValidClassId } from '../utils/validation';
 
 const AddLead = () => {
   const navigate = useNavigate();
-  const { mutate: createLead, isLoading, isError, error } = useCreateLead();
+  // eslint-disable-next-line no-unused-vars
+  const { mutate: createLead, isLoading, isError, error: mutationError } = useCreateLead();
   const { isOffline } = useOffline();
+  const notificationService = NotificationService.getInstance();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -26,6 +30,7 @@ const AddLead = () => {
   
   // Error handling
   const [formErrors, setFormErrors] = useState({});
+  const [error, setError] = useState(null);
   
   // Handle input changes
   const handleInputChange = (e) => {
@@ -47,14 +52,31 @@ const AddLead = () => {
   // Form validation
   const validateForm = () => {
     const errors = {};
-    if (!formData.first_name.trim()) errors.first_name = 'First name is required';
-    if (!formData.last_name.trim()) errors.last_name = 'Last name is required';
-    if (!formData.phone_number.trim()) errors.phone_number = 'Phone number is required';
-    if (!formData.date_of_enquiry) errors.date_of_enquiry = 'Date of enquiry is required';
+    
+    // Required fields
+    if (!isRequired(formData.first_name)) errors.first_name = 'First name is required';
+    if (!isRequired(formData.last_name)) errors.last_name = 'Last name is required';
+    if (!isRequired(formData.phone_number)) errors.phone_number = 'Phone number is required';
+    if (!isRequired(formData.date_of_enquiry)) errors.date_of_enquiry = 'Date of enquiry is required';
     
     // Email validation
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+    if (formData.email && !isValidEmail(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    // Phone number validation
+    if (formData.phone_number && !isValidPhoneNumber(formData.phone_number)) {
+      errors.phone_number = 'Please enter a valid phone number';
+    }
+    
+    // Date validation
+    if (formData.date_of_enquiry && !isValidDate(formData.date_of_enquiry)) {
+      errors.date_of_enquiry = 'Please enter a valid date';
+    }
+    
+    // Class validation
+    if (formData.interested_class && !isValidClassId(formData.interested_class)) {
+      errors.interested_class = 'Please select a valid class';
     }
     
     setFormErrors(errors);
@@ -77,13 +99,26 @@ const AddLead = () => {
     }
     
     if (isOffline) {
-      // Save lead offline
-      const offlineLead = OfflineStorage.saveOfflineLead(submissionData);
-      if (offlineLead) {
-        // Show success message (could be implemented with a toast or alert)
-        console.log('Lead saved offline:', offlineLead);
-        // Navigate to the lead list
-        navigate('/leads');
+      try {
+        // Save lead offline
+        const offlineLead = OfflineStorage.saveOfflineLead(submissionData);
+        if (offlineLead) {
+          // Show success message
+          console.log('Lead saved offline:', offlineLead);
+          // Show success notification
+          notificationService.showNotification({
+            title: 'Lead Saved Offline',
+            message: 'The lead has been saved locally and will be synced when you reconnect.',
+            type: 'success'
+          });
+          // Navigate to the lead list
+          navigate('/leads');
+        } else {
+          throw new Error('Failed to save lead offline');
+        }
+      } catch (error) {
+        console.error('Error saving lead offline:', error);
+        setError('Failed to save lead offline. Please try again.');
       }
     } else {
       // Online mode - use existing mutation logic
@@ -108,6 +143,8 @@ const AddLead = () => {
             });
             
             setFormErrors(formattedErrors);
+          } else {
+            setError('Failed to create lead. Please try again.');
           }
         }
       });

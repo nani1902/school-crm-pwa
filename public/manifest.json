@@ -1,7 +1,7 @@
 {
-  "name": "School CRM",
-  "short_name": "SchoolCRM",
-  "description": "School CRM Progressive Web App",
+  "name": "Sri Gurukulam Crm",
+  "short_name": "Gurukulam Crm",
+  "description": "Sri Gurukulam Crm Progressive Web App",
   "start_url": "/crm/login/",
   "display": "standalone",
   "background_color": "#ffffff",

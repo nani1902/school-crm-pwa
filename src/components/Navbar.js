@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationBell from './NotificationBell';
+import InstallButton from './InstallButton';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -45,9 +46,11 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-content">
         <div className="navbar-left">
+          <span className="app-title">Sri Gurukulam Crm</span>
           {/* Page title could go here */}
         </div>
         <div className="navbar-right">
+          <InstallButton />
           <NotificationBell />
           <div className="user-dropdown" ref={dropdownRef}>
             <button

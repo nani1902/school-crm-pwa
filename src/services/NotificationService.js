@@ -1,6 +1,9 @@
 // src/services/NotificationService.js
 import apiService from '../api/apiService';
 
+// Feature flag to control notification functionality
+const NOTIFICATIONS_ENABLED = false;
+
 const convertedVapidKey = (publicVapidKey) => {
   const padding = '='.repeat((4 - publicVapidKey.length % 4) % 4);
   const base64 = (publicVapidKey + padding)
@@ -29,22 +32,57 @@ class NotificationService {
   async init() {
     try {
       // Check if service workers are supported
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        // Register the service worker
-        this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('[Notification Service] Service Worker registered:', this.swRegistration);
-        
-        // Check if already subscribed
-        this.isSubscribed = await this.checkSubscription();
-        
-        // Wait for service worker to be ready
-        await navigator.serviceWorker.ready;
-        
-        return true;
-      } else {
-        console.log('[Notification Service] Push notifications not supported');
+      if (!('serviceWorker' in navigator)) {
+        console.warn('[Notification Service] Service workers are not supported');
         return false;
       }
+
+      if (!('PushManager' in window)) {
+        console.warn('[Notification Service] Push notifications are not supported');
+        return false;
+      }
+
+      // Register the service worker with error handling
+      try {
+        this.swRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/'
+        });
+        console.log('[Notification Service] Service Worker registered:', this.swRegistration);
+      } catch (swError) {
+        console.error('[Notification Service] Service Worker registration failed:', swError);
+        
+        // Try to unregister any existing service workers
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) {
+            await registration.unregister();
+          }
+          console.log('[Notification Service] Cleared existing service workers');
+          
+          // Try registration again
+          this.swRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+            scope: '/'
+          });
+          console.log('[Notification Service] Service Worker registered after cleanup:', this.swRegistration);
+        } catch (retryError) {
+          console.error('[Notification Service] Service Worker registration failed after cleanup:', retryError);
+          return false;
+        }
+      }
+      
+      // Check if already subscribed
+      this.isSubscribed = await this.checkSubscription();
+      
+      // Wait for service worker to be ready
+      try {
+        await navigator.serviceWorker.ready;
+        console.log('[Notification Service] Service Worker is ready');
+      } catch (readyError) {
+        console.error('[Notification Service] Service Worker ready check failed:', readyError);
+        return false;
+      }
+      
+      return true;
     } catch (error) {
       console.error('[Notification Service] Error initializing:', error);
       return false;
@@ -146,6 +184,10 @@ class NotificationService {
 
   // Save subscription to server
   async saveSubscription(subscription) {
+    if (!NOTIFICATIONS_ENABLED) {
+      console.log('[Notification Service] Notifications are currently disabled');
+      return null;
+    }
     try {
       const response = await apiService.post('notifications/subscribe/', {
         subscription: JSON.stringify(subscription)
@@ -161,6 +203,10 @@ class NotificationService {
 
   // Delete subscription from server
   async deleteSubscription(endpoint) {
+    if (!NOTIFICATIONS_ENABLED) {
+      console.log('[Notification Service] Notifications are currently disabled');
+      return null;
+    }
     try {
       const response = await apiService.post('notifications/unsubscribe/', {
         endpoint
@@ -176,6 +222,10 @@ class NotificationService {
 
   // Send a test notification (Admin only)
   async sendTestNotification() {
+    if (!NOTIFICATIONS_ENABLED) {
+      console.log('[Notification Service] Notifications are currently disabled');
+      return null;
+    }
     try {
       const response = await apiService.post('notifications/test/');
       console.log('[Notification Service] Test notification sent:', response.data);
@@ -188,6 +238,10 @@ class NotificationService {
 
   // Send a custom notification (Admin only)
   async sendCustomNotification(notificationData) {
+    if (!NOTIFICATIONS_ENABLED) {
+      console.log('[Notification Service] Notifications are currently disabled');
+      return null;
+    }
     try {
       const response = await apiService.post('notifications/send/', notificationData);
       console.log('[Notification Service] Custom notification sent:', response.data);

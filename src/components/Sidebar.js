@@ -95,7 +95,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`sidebar ${isMobile ? 'mobile' : ''} ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2><span className="text-primary">School</span>CRM</h2>
+          {/* Removed SchoolCRM branding */}
         </div>
         
         <nav className="sidebar-nav">

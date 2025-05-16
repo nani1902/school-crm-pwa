@@ -57,7 +57,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2>School CRM</h2>
+          <h2>Sri Gurukulam Crm</h2>
           <p>Login to your account</p>
         </div>
         
@@ -100,10 +100,6 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
-        <div className="login-footer">
-          <a href="/api-test" className="test-link">Test API Connection</a>
-        </div>
       </div>
     </div>
   );

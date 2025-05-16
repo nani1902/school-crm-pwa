@@ -52,7 +52,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 500;
-  margin-right: 0.75rem;
+  margin-right: 0.5rem;
 }
 
 .user-name {
@@ -112,4 +112,27 @@
 
 .small {
   font-size: 0.875rem;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Remove any vertical margin from NotificationBell and InstallButton if present */
+.notification-bell-container,
+.install-button {
+  margin: 0;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0066cc;
+  margin-right: 2rem;
+  letter-spacing: 0.5px;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  display: inline-block;
+  vertical-align: middle;
 }

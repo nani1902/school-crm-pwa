@@ -1,0 +1,47 @@
+/* src/components/InstallButton.css */
+.install-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 1rem;
+}
+
+.install-button:hover {
+  background-color: #0055aa;
+}
+
+.install-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.install-button .material-icons {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.install-button .button-text {
+  white-space: nowrap;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 576px) {
+  .install-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .install-button .material-icons {
+    font-size: 1rem;
+    margin-right: 0.25rem;
+  }
+} 

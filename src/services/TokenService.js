@@ -1,7 +1,7 @@
 // src/services/TokenService.js
 import apiService from '../api/apiService';
 
-// Define API_URL directly to avoid the undefined error
+// eslint-disable-next-line no-unused-vars
 const API_URL = 'https://mahesh1902.pythonanywhere.com/crm/api/';
 
 const TokenService = {
@@ -90,12 +90,24 @@ const TokenService = {
     const token = TokenService.getToken();
     if (!token) return true;
     
-    // If your token is JWT, you can decode and check expiration
-    // For demo purposes, we'll just assume tokens last 24 hours
-    // In a real app, you'd decode the JWT and check the exp claim
-    
-    // For now we'll return false - indicating need to implement proper check
-    return false;
+    try {
+      // Decode the JWT token (assuming it's a JWT)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const { exp } = JSON.parse(jsonPayload);
+      
+      // Check if token is expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      return exp < currentTime;
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
+      // If we can't decode the token, assume it's expired for security
+      return true;
+    }
   },
   
   // Refresh token
