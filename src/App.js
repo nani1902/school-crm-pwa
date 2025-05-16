@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { QueryProvider } from './contexts/QueryContext';
 import { OfflineProvider } from './contexts/OfflineContext';
 import './App.css';
-import ApiTester from './components/ApiTester';
 import apiService from './api/apiService';
 import OfflineSyncManager from './components/OfflineSyncManager';
 // Layout components
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import CSRFService from './services/CSRFService';
+import installService from './services/InstallService';
+import InstallButton from './components/InstallButton';
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -84,6 +85,7 @@ const AppLayout = ({ children }) => {
         <div className="content-wrapper">
           {children}
         </div>
+        <InstallButton />
       </div>
     </div>
   );
@@ -95,7 +97,12 @@ const PublicPage = ({ children }) => {
 };
 
 // Main App component
-function App() {
+const App = () => {
+  useEffect(() => {
+    // Initialize install service
+    installService.init();
+  }, []);
+
   // CSRF initialization - moved inside the component
   React.useEffect(() => {
     // Initialize CSRF protection
@@ -126,12 +133,6 @@ function App() {
               <Route path="/login" element={
                 <PublicPage>
                   <Login />
-                </PublicPage>
-              } />
-              
-              <Route path="/api-test" element={
-                <PublicPage>
-                  <ApiTester />
                 </PublicPage>
               } />
               
@@ -421,5 +422,6 @@ function App() {
       </OfflineProvider>
     </AuthProvider>
   );
-}
+};
+
 export default App;
